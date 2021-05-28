@@ -31,13 +31,16 @@ qq_rv_t qq_push(qq_t *q, void *src) {
     return QQ_WAS_FULL;
 }
 
-qq_rv_t qq_pop(qq_t *q, void *dst) {
+qq_rv_t qq_pop(qq_t *q, void *dst, bool peek) {
     if (q->rear == q->front) {
         return QQ_WAS_EMPTY;
     }
-    memcpy(dst, q->contents + q->rear++ * q->elem_size, q->elem_size);
-    if (q->rear == q->max_elems) {
-        q->rear = 0;
+    memcpy(dst, q->contents + q->rear * q->elem_size, q->elem_size);
+    if (!peek) {
+        q->rear++;
+        if (q->rear == q->max_elems) {
+            q->rear = 0;
+        }
     }
     return QQ_OK;
 }
@@ -87,25 +90,25 @@ qq_rv_t tsqq_push_noblock(tsqq_t *q, void *src) {
     if (failed) {
         return QQ_NO_LOCK;
     }
-    qq_rv_t rv = qq_pop(&q->q, src);
+    qq_rv_t rv = qq_push(&q->q, src);
     pthread_mutex_unlock(&q->mtx);
     pthread_cond_signal(&q->cnd);
     return rv;
 }
 
-qq_rv_t tsqq_pop(tsqq_t *q, void *dst) {
+qq_rv_t tsqq_pop(tsqq_t *q, void *dst, bool peek) {
     pthread_mutex_lock(&q->mtx);
-    qq_rv_t rv = qq_pop(&q->q, dst);
+    qq_rv_t rv = qq_pop(&q->q, dst, peek);
     pthread_mutex_unlock(&q->mtx);
     return rv; 
 }
 
-qq_rv_t tsqq_pop_noblock(tsqq_t *q, void *dst) {
+qq_rv_t tsqq_pop_noblock(tsqq_t *q, void *dst, bool peek) {
     int failed = pthread_mutex_trylock(&q->mtx);
     if (failed) {
         return QQ_NO_LOCK;
     }
-    qq_rv_t rv = qq_pop(&q->q, dst);
+    qq_rv_t rv = qq_pop(&q->q, dst, peek);
     pthread_mutex_unlock(&q->mtx);
     return rv; 
 }

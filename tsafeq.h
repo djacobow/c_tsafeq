@@ -46,7 +46,7 @@ typedef struct qq_t {
 
 void     qq_init(qq_t *q, uint8_t *data, uint32_t max_elems, size_t elem_size);
 qq_rv_t  qq_push(qq_t *q, void *src);
-qq_rv_t  qq_pop(qq_t *q, void *dst);
+qq_rv_t  qq_pop(qq_t *q, void *dst, bool peek);
 qq_rv_t  qq_full(qq_t *q);
 qq_rv_t  qq_empty(qq_t *q);
 uint32_t qq_size(qq_t *q);
@@ -67,7 +67,7 @@ uint32_t qq_size(qq_t *q);
     _QQ_ASSERT(sizeof(_ITEM) == elem_size_##_NAME)
 
 #define QQ_POP(_NAME, _DEST) \
-    qq_pop(&_NAME, &_DEST); \
+    qq_pop(&_NAME, &_DEST, false); \
     _QQ_ASSERT(sizeof(_DEST) == elem_size_##_NAME)
 
 #define QQ_FULL(_NAME)  qq_full(&_NAME)
@@ -92,8 +92,8 @@ typedef struct tsqq_t {
 void     tsqq_init(tsqq_t *q, uint8_t *data, uint32_t max_elems, size_t elem_size);
 qq_rv_t  tsqq_push(tsqq_t *q, void *src);
 qq_rv_t  tsqq_push_noblock(tsqq_t *q, void *src);
-qq_rv_t  tsqq_pop(tsqq_t *q, void *dst);
-qq_rv_t  tsqq_pop_noblock(tsqq_t *q, void *dst);
+qq_rv_t  tsqq_pop(tsqq_t *q, void *dst, bool peek);
+qq_rv_t  tsqq_pop_noblock(tsqq_t *q, void *dst, bool peek);
 qq_rv_t  tsqq_full(tsqq_t *q);
 qq_rv_t  tsqq_empty(tsqq_t *q);
 uint32_t tsqq_size(tsqq_t *q);
@@ -116,11 +116,11 @@ uint32_t tsqq_size(tsqq_t *q);
     _QQ_ASSERT(sizeof(_ITEM) == elem_size_##_NAME)
 
 #define TSQQ_POP(_NAME, _DEST) \
-    tsqq_pop(&_NAME, &_DEST); \
+    tsqq_pop(&_NAME, &_DEST, false); \
     _QQ_ASSERT(sizeof(_DEST) == elem_size_##_NAME)
 
 #define TSQQ_POP_NOBLOCK(_NAME, _DEST) \
-    tsqq_pop_noblock(&_NAME, &_DEST); \
+    tsqq_pop_noblock(&_NAME, &_DEST, false); \
     _QQ_ASSERT(sizeof(_DEST) == elem_size_##_NAME)
 
 #define TSQQ_FULL(_NAME)  tsqq_full(&_NAME)

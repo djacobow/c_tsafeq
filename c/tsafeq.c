@@ -96,6 +96,8 @@ qq_rv_t tsqq_push_noblock(tsqq_t *q, void *src) {
     return rv;
 }
 
+// This blocks on getting the mutex, but not on an
+// element being available.
 qq_rv_t tsqq_pop(tsqq_t *q, void *dst, bool peek) {
     pthread_mutex_lock(&q->mtx);
     qq_rv_t rv = qq_pop(&q->q, dst, peek);
@@ -103,6 +105,8 @@ qq_rv_t tsqq_pop(tsqq_t *q, void *dst, bool peek) {
     return rv; 
 }
 
+// This does not block at all, on getting the mutex
+// or an element being available.
 qq_rv_t tsqq_pop_noblock(tsqq_t *q, void *dst, bool peek) {
     int failed = pthread_mutex_trylock(&q->mtx);
     if (failed) {
@@ -111,6 +115,18 @@ qq_rv_t tsqq_pop_noblock(tsqq_t *q, void *dst, bool peek) {
     qq_rv_t rv = qq_pop(&q->q, dst, peek);
     pthread_mutex_unlock(&q->mtx);
     return rv; 
+}
+
+// This blocks on both getting the mutex *and*
+// an element being available
+qq_rv_t tsqq_pop_block(tsqq_t *q, void *dst, bool peek) {
+    pthread_mutex_lock(&q->mtx);
+    while (qq_empty(&q->q)) {
+        pthread_cond_wait(&q->cnd, &q->mtx);
+    }
+    qq_rv_t rv = qq_pop(&q->q, dst, peek);
+    pthread_mutex_unlock(&q->mtx);
+    return rv;
 }
 
 qq_rv_t tsqq_full(tsqq_t *q) {

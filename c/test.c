@@ -9,7 +9,7 @@ typedef struct {
     uint8_t  z;
 } test_type_t;
 
-TSQQ_ALLOC(bloop, test_type_t, 50);
+TSQQ_ALLOC(bloop, test_type_t, 10);
 
 void *f0(void *p) {
     uint32_t i = 0;
@@ -19,10 +19,12 @@ void *f0(void *p) {
         x0.y = i;
         x0.z = i;
         qq_rv_t rv = TSQQ_PUSH(bloop, x0);
-        usleep(100 * (rand() & 0xff));
         if (rv == QQ_OK) {
             printf("Pushed %d\n", i);
             i++;
+        }
+        if (!(rand() & 0x7)) {
+            usleep(1000 * (rand() & 0xff));
         }
     }
     return 0;
@@ -33,7 +35,7 @@ void *f1(void *p) {
     test_type_t x1;
     x1.x = 0;
     do {
-        rv = TSQQ_POP(bloop, x1);
+        rv = TSQQ_POP_BLOCK(bloop, x1);
         if (rv == QQ_OK) {
             printf("Popped %d\n", x1.x);
         }

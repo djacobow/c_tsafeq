@@ -1,6 +1,6 @@
 # c_tsafeq
 
-simple, c-base, fixed-allocation thread-safe queue
+simple, c-based, fixed-allocation thread-safe queue
 
 ## What
 

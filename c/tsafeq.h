@@ -92,8 +92,9 @@ typedef struct tsqq_t {
 void     tsqq_init(tsqq_t *q, uint8_t *data, uint32_t max_elems, size_t elem_size);
 qq_rv_t  tsqq_push(tsqq_t *q, void *src);
 qq_rv_t  tsqq_push_noblock(tsqq_t *q, void *src);
-qq_rv_t  tsqq_pop(tsqq_t *q, void *dst, bool peek);
-qq_rv_t  tsqq_pop_noblock(tsqq_t *q, void *dst, bool peek);
+qq_rv_t  tsqq_pop(tsqq_t *q, void *dst, bool peek);         // waits on mutex
+qq_rv_t  tsqq_pop_noblock(tsqq_t *q, void *dst, bool peek); // waits on nothin
+qq_rv_t  tsqq_pop_block(tsqq_t *q, void *dst, bool peek);   // waits on mutex and non-emptiness
 qq_rv_t  tsqq_full(tsqq_t *q);
 qq_rv_t  tsqq_empty(tsqq_t *q);
 uint32_t tsqq_size(tsqq_t *q);
@@ -121,6 +122,10 @@ uint32_t tsqq_size(tsqq_t *q);
 
 #define TSQQ_POP_NOBLOCK(_NAME, _DEST) \
     tsqq_pop_noblock(&_NAME, &_DEST, false); \
+    _QQ_ASSERT(sizeof(_DEST) == elem_size_##_NAME)
+
+#define TSQQ_POP_BLOCK(_NAME, _DEST) \
+    tsqq_pop_block(&_NAME, &_DEST, false); \
     _QQ_ASSERT(sizeof(_DEST) == elem_size_##_NAME)
 
 #define TSQQ_FULL(_NAME)  tsqq_full(&_NAME)
